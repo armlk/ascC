@@ -4,6 +4,8 @@
 #define SCREEN_HEIGHT 480
 
 SDL_Window *initWindow(void);
+SDL_Surface *loadImage(void);
+void close(SDL_Surface *, SDL_Window *);
 
 int main(int argc, char *args[]) {
   SDL_Window *window = NULL;
@@ -12,14 +14,17 @@ int main(int argc, char *args[]) {
   window = initWindow();
   if (window == NULL) {
     printf("Window failed: %s", SDL_GetError());
-    return -1;
+    return 0;
   }
 
   screenSurface = SDL_GetWindowSurface(window);
+  SDL_Surface *loadedImage = loadImage();
 
-  SDL_FillRect(screenSurface, NULL,
-               SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
+  if (loadedImage == NULL) {
+    printf("Image loading failed: %s", SDL_GetError());
+  }
 
+  SDL_BlitSurface(loadedImage, NULL, screenSurface, NULL);
   SDL_UpdateWindowSurface(window);
 
   SDL_Event e;
@@ -30,10 +35,7 @@ int main(int argc, char *args[]) {
         quit = 1;
     }
   }
-
-  SDL_DestroyWindow(window);
-
-  SDL_Quit();
+  close(loadedImage, window);
 }
 
 SDL_Window *initWindow(void) {
@@ -44,4 +46,13 @@ SDL_Window *initWindow(void) {
   return SDL_CreateWindow("ascC", SDL_WINDOWPOS_UNDEFINED,
                           SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT,
                           SDL_WINDOW_SHOWN);
+}
+
+SDL_Surface *loadImage(void) { return SDL_LoadBMP("./assets/gato.bmp"); }
+void close(SDL_Surface *image, SDL_Window *window) {
+  SDL_FreeSurface(image);
+
+  SDL_DestroyWindow(window);
+
+  SDL_Quit();
 }
